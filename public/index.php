@@ -1,10 +1,9 @@
-
 <?php
 require_once "../app/models/Model.php";
 require_once "../app/models/User.php";
 require_once "../app/models/Post.php";
 require_once "../app/controllers/UserController.php";
-require_once __DIR__ . '/../app/controllers/PostController.php';
+require_once __DIR__ . '/../app/controllers/PostControllers.php';
 
 //set our env variables
 $env = parse_ini_file('../.env');
@@ -12,6 +11,7 @@ define('DBNAME', $env['DBNAME']);
 define('DBHOST', $env['DBHOST']);
 define('DBUSER', $env['DBUSER']);
 define('DBPASS', $env['DBPASS']);
+
 
 use app\controllers\UserController;
 use app\controllers\PostController;
