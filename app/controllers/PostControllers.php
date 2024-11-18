@@ -7,25 +7,25 @@ class PostController
 {
     public function validatePost($inputData) {
         $errors = [];
-        $title = $inputData['title'];
-        $content = $inputData['content'];
+        $title = $inputData['title'] ?? null;
+        $content = $inputData['content'] ?? null;
 
         if ($title) {
-            $title = htmlspecialchars($title, ENT_QUOTES|ENT_HTML5, 'UTF-8', true);
+            $title = htmlspecialchars($title, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
             if (strlen($title) < 2) {
-                $errors['titleShort'] = 'title is too short';
+                $errors['titleShort'] = 'Title is too short';
             }
         } else {
-            $errors['requiredTitle'] = 'title is required';
+            $errors['requiredTitle'] = 'Title is required';
         }
 
         if ($content) {
-            $content = htmlspecialchars($content, ENT_QUOTES|ENT_HTML5, 'UTF-8', true);
+            $content = htmlspecialchars($content, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
             if (strlen($content) < 2) {
-                $errors['contentShort'] = 'content is too short';
+                $errors['contentShort'] = 'Content is too short';
             }
         } else {
-            $errors['requiredContent'] = 'content is required';
+            $errors['requiredContent'] = 'Content is required';
         }
 
         if (count($errors)) {
@@ -33,6 +33,7 @@ class PostController
             echo json_encode($errors);
             exit();
         }
+
         return [
             'title' => $title,
             'content' => $content,
@@ -43,53 +44,72 @@ class PostController
         $postModel = new Post();
         header("Content-Type: application/json");
         $posts = $postModel->getAllPosts();
-
         echo json_encode($posts);
         exit();
     }
 
     public function getPostByID($id) {
+        if (!$id) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Post not found']);
+            exit();
+        }
+
         $postModel = new Post();
         header("Content-Type: application/json");
         $post = $postModel->getPostById($id);
-        echo json_encode($post);
+        
+        if ($post) {
+            echo json_encode($post);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Post not found']);
+        }
         exit();
     }
 
     public function savePost() {
-        $inputData = [
-            'title' => $_POST['title'] ? $_POST['title'] : false,
-            'content' => $_POST['content'] ? $_POST['content'] : false,
-        ];
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405); 
+            echo json_encode(['error' => 'Method not allowed']);
+            exit();
+        }
+
+        $jsonData = file_get_contents('php://input');
+        $inputData = json_decode($jsonData, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            parse_str(file_get_contents('php://input'), $inputData);
+        }
         $postData = $this->validatePost($inputData);
 
         $post = new Post();
-        $post->savePost(
-            [
-                'title' => $postData['title'],
-                'content' => $postData['content'],
-            ]
-        );
+        $result = $post->savePost($postData['title'], $postData['content']);
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true
-        ]);
+        if ($result) {
+            http_response_code(201); 
+            echo json_encode(['success' => true]);
+        } else {
+            http_response_code(500); 
+            echo json_encode(['error' => 'Failed to save post']);
+        }
         exit();
     }
 
     public function updatePost($id) {
         if (!$id) {
-            http_response_code(404);
+            http_response_code(404); // Not Found
+            echo json_encode(['error' => 'Post not found']);
             exit();
         }
 
         parse_str(file_get_contents('php://input'), $_PUT);
 
         $inputData = [
-            'title' => $_PUT['title'] ? $_PUT['title'] : false,
-            'content' => $_PUT['content'] ? $_PUT['content'] : false,
+            'title' => $_PUT['title'] ?? false,
+            'content' => $_PUT['content'] ?? false,
         ];
+
         $postData = $this->validatePost($inputData);
 
         $post = new Post();
@@ -101,16 +121,15 @@ class PostController
             ]
         );
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true
-        ]);
+        http_response_code(200); 
+        echo json_encode(['success' => true]);
         exit();
     }
 
     public function deletePost($id) {
         if (!$id) {
-            http_response_code(404);
+            http_response_code(404); 
+            echo json_encode(['error' => 'Post not found']);
             exit();
         }
 
@@ -121,10 +140,8 @@ class PostController
             ]
         );
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true
-        ]);
+        http_response_code(200); 
+        echo json_encode(['success' => true]);
         exit();
     }
 
