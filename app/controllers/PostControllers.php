@@ -3,29 +3,29 @@ namespace app\controllers;
 
 use app\models\Post;
 
-class PostController {
-
+class PostController
+{
     public function validatePost($inputData) {
         $errors = [];
         $title = $inputData['title'];
         $content = $inputData['content'];
 
         if ($title) {
-            $title = htmlspecialchars($title, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
+            $title = htmlspecialchars($title, ENT_QUOTES|ENT_HTML5, 'UTF-8', true);
             if (strlen($title) < 2) {
-                $errors['titleShort'] = 'Title is too short';
+                $errors['titleShort'] = 'title is too short';
             }
         } else {
-            $errors['requiredTitle'] = 'Title is required';
+            $errors['requiredTitle'] = 'title is required';
         }
 
         if ($content) {
-            $content = htmlspecialchars($content, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
-            if (strlen($content) < 10) {
-                $errors['contentShort'] = 'Content is too short';
+            $content = htmlspecialchars($content, ENT_QUOTES|ENT_HTML5, 'UTF-8', true);
+            if (strlen($content) < 2) {
+                $errors['contentShort'] = 'content is too short';
             }
         } else {
-            $errors['requiredContent'] = 'Content is required';
+            $errors['requiredContent'] = 'content is required';
         }
 
         if (count($errors)) {
@@ -33,7 +33,6 @@ class PostController {
             echo json_encode($errors);
             exit();
         }
-
         return [
             'title' => $title,
             'content' => $content,
@@ -49,7 +48,7 @@ class PostController {
         exit();
     }
 
-    public function getPostById($id) {
+    public function getPostByID($id) {
         $postModel = new Post();
         header("Content-Type: application/json");
         $post = $postModel->getPostById($id);
@@ -65,10 +64,12 @@ class PostController {
         $postData = $this->validatePost($inputData);
 
         $post = new Post();
-        $post->savePost([
-            'title' => $postData['title'],
-            'content' => $postData['content'],
-        ]);
+        $post->savePost(
+            [
+                'title' => $postData['title'],
+                'content' => $postData['content'],
+            ]
+        );
 
         http_response_code(200);
         echo json_encode([
@@ -92,11 +93,13 @@ class PostController {
         $postData = $this->validatePost($inputData);
 
         $post = new Post();
-        $post->updatePost([
-            'id' => $id,
-            'title' => $postData['title'],
-            'content' => $postData['content'],
-        ]);
+        $post->updatePost(
+            [
+                'id' => $id,
+                'title' => $postData['title'],
+                'content' => $postData['content'],
+            ]
+        );
 
         http_response_code(200);
         echo json_encode([
@@ -112,9 +115,11 @@ class PostController {
         }
 
         $post = new Post();
-        $post->deletePost([
-            'id' => $id,
-        ]);
+        $post->deletePost(
+            [
+                'id' => $id,
+            ]
+        );
 
         http_response_code(200);
         echo json_encode([
@@ -124,22 +129,22 @@ class PostController {
     }
 
     public function postsView() {
-        include '../public/assets/views/post/posts-view.html';
+        include '../public/assets/views/posts/posts-view.html';
         exit();
     }
 
     public function postsAddView() {
-        include '../public/assets/views/post/posts-add.html';
+        include '../public/assets/views/posts/posts-add.html';
         exit();
     }
 
     public function postsDeleteView() {
-        include '../public/assets/views/post/posts-delete.html';
+        include '../public/assets/views/posts/posts-delete.html';
         exit();
     }
 
     public function postsUpdateView() {
-        include '../public/assets/views/post/posts-update.html';
+        include '../public/assets/views/posts/posts-update.html';
         exit();
     }
 }
