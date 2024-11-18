@@ -1,0 +1,18 @@
+Dennis Frenkel
+Homework 10
+
+1. PDOs (PHP Data Objects) are a PHP extension that provides a lightweight, consistent interface for accessing databases. 
+A DSN (Data Source Name) is a string that specifies the database connection details, including the database type, host, port, username,
+password, and database name.
+
+2. Environment files (.env) store sensitive configuration settings, such as database credentials and API keys, separately from 
+the application code. This enhances security and facilitates environment-specific configurations. Gitignore files (.gitignore) 
+specify files or directories to exclude from version control, ensuring sensitive data and temporary files aren't committed to GitHub.
+
+3. Uploading passwords or sensitive data to GitHub should not be done. Publicly exposing credentials can compromise security. 
+Instead, we can use environment variables or secure storage solutions.
+
+4. SQL injection occurs when malicious SQL code is injected into web applications, potentially allowing attackers to access or 
+manipulate sensitive data. This vulnerability arises when user input isn't properly sanitized or validated. To mitigate SQL injection, 
+we can use prepared statements, and input validation. PDOs provide built-in protection mechanisms, such as prepared 
+statements, to help prevent SQL injection attacks.
