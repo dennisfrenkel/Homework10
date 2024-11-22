@@ -1,18 +1,30 @@
 <?php
 namespace app\controllers;
 
-use app\models\Post;
+use app\models\Posts;
+use PDO;
 
-class PostController
+require_once "../app/models/Posts.php";
+
+class PostsController
 {
-    public function validatePost($inputData) {
+    private $postModel;
+
+    
+    public function __construct(PDO $db)
+    {
+        $this->postModel = new Posts($db);
+    }
+
+    public function validatePost(array $inputData): array
+    {
         $errors = [];
-        $title = $inputData['title'] ?? null;
-        $content = $inputData['content'] ?? null;
+        $title = $inputData['title'];
+        $content = $inputData['content'];
 
         if ($title) {
             $title = htmlspecialchars($title, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
-            if (strlen($title) < 2) {
+            if (strlen($title) < 5) {
                 $errors['titleShort'] = 'Title is too short';
             }
         } else {
@@ -21,7 +33,7 @@ class PostController
 
         if ($content) {
             $content = htmlspecialchars($content, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
-            if (strlen($content) < 2) {
+            if (strlen($content) < 10) {
                 $errors['contentShort'] = 'Content is too short';
             }
         } else {
@@ -40,24 +52,23 @@ class PostController
         ];
     }
 
-    public function getAllPosts() {
-        $postModel = new Post();
+    public function getAllPosts(): void
+    {
         header("Content-Type: application/json");
-        $posts = $postModel->getAllPosts();
-        echo json_encode($posts);
+        echo json_encode($this->postModel->getAllPosts());
         exit();
     }
 
-    public function getPostByID($id) {
+    public function getPostByID(int $id): void
+    {
         if (!$id) {
             http_response_code(404);
             echo json_encode(['error' => 'Post not found']);
             exit();
         }
 
-        $postModel = new Post();
         header("Content-Type: application/json");
-        $post = $postModel->getPostById($id);
+        $post = $this->postModel->getPostById($id);
         
         if ($post) {
             echo json_encode($post);
@@ -68,38 +79,27 @@ class PostController
         exit();
     }
 
-    public function savePost() {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405); 
-            echo json_encode(['error' => 'Method not allowed']);
-            exit();
-        }
-
-        $jsonData = file_get_contents('php://input');
-        $inputData = json_decode($jsonData, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            parse_str(file_get_contents('php://input'), $inputData);
-        }
+    public function savePost(): void
+    {
+        $inputData = [
+            'title' => $_POST['title'] ?? false,
+            'content' => $_POST['content'] ?? false,
+        ];
         $postData = $this->validatePost($inputData);
 
-        $post = new Post();
-        $result = $post->savePost($postData['title'], $postData['content']);
+        $this->postModel->savePost($postData);
 
-        if ($result) {
-            http_response_code(201); 
-            echo json_encode(['success' => true]);
-        } else {
-            http_response_code(500); 
-            echo json_encode(['error' => 'Failed to save post']);
-        }
+        http_response_code(200);
+        echo json_encode([
+            'success' => true
+        ]);
         exit();
     }
 
-    public function updatePost($id) {
+    public function updatePost(int $id): void
+    {
         if (!$id) {
-            http_response_code(404); // Not Found
-            echo json_encode(['error' => 'Post not found']);
+            http_response_code(404);
             exit();
         }
 
@@ -109,59 +109,56 @@ class PostController
             'title' => $_PUT['title'] ?? false,
             'content' => $_PUT['content'] ?? false,
         ];
-
         $postData = $this->validatePost($inputData);
 
-        $post = new Post();
-        $post->updatePost(
-            [
-                'id' => $id,
-                'title' => $postData['title'],
-                'content' => $postData['content'],
-            ]
-        );
+        $this->postModel->updatePost($id, $postData);
 
-        http_response_code(200); 
-        echo json_encode(['success' => true]);
+        http_response_code(200);
+        echo json_encode([
+            'success' => true
+        ]);
         exit();
     }
 
-    public function deletePost($id) {
+    public function deletePost(int $id): void
+    {
         if (!$id) {
-            http_response_code(404); 
-            echo json_encode(['error' => 'Post not found']);
+            http_response_code(400); 
+            echo json_encode(['error' => 'Post ID is required']);
             exit();
         }
 
-        $post = new Post();
-        $post->deletePost(
-            [
-                'id' => $id,
-            ]
-        );
-
-        http_response_code(200); 
-        echo json_encode(['success' => true]);
+        if ($this->postModel->deletePost(['id' => $id])) {
+            http_response_code(200);
+            echo json_encode(['success' => true]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to delete post']);
+        }
         exit();
     }
-
-    public function postsView() {
+    public function postsView(): void
+    {
         include '../public/assets/views/posts/posts-view.html';
         exit();
     }
 
-    public function postsAddView() {
+    public function postsAddView(): void
+    {
         include '../public/assets/views/posts/posts-add.html';
         exit();
     }
 
-    public function postsDeleteView() {
+    public function postsDeleteView(): void
+    {
         include '../public/assets/views/posts/posts-delete.html';
         exit();
     }
 
-    public function postsUpdateView() {
+    public function postsUpdateView(): void
+    {
         include '../public/assets/views/posts/posts-update.html';
         exit();
     }
 }
+?>
