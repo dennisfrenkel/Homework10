@@ -1,98 +1,120 @@
 <?php
+
 require_once "../app/models/Model.php";
 require_once "../app/models/User.php";
-require_once "../app/models/Post.php";
 require_once "../app/controllers/UserController.php";
-require_once "../app/controllers/PostController.php";
+require_once "../app/models/Posts.php"; 
+require_once "../app/controllers/PostsController.php";
 
-// Set environment variables
-$env = parse_ini_file('../.env');
+$env = parse_ini_file(__DIR__ . '/../.env');
 define('DBNAME', $env['DBNAME']);
 define('DBHOST', $env['DBHOST']);
 define('DBUSER', $env['DBUSER']);
 define('DBPASS', $env['DBPASS']);
+define('DBPORT', $env['DBPORT']);
 
 use app\controllers\UserController;
-use app\controllers\PostController;
+use app\controllers\PostsController;
 
 $uri = strtok($_SERVER["REQUEST_URI"], '?');
 $uriArray = explode("/", $uri);
 
-// Users API
-if ($uriArray[1] === 'api' && $uriArray[2] === 'users') {
+$db = new PDO(
+    'mysql:host=' . DBHOST . ';port=' . DBPORT . ';dbname=' . DBNAME, 
+    DBUSER, 
+    DBPASS
+);
+
+$postController = new PostsController($db);  
+
+if ($uriArray[1] === 'api' && $uriArray[2] === 'users' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $id = isset($uriArray[3]) ? intval($uriArray[3]) : null;
     $userController = new UserController();
-
-    switch ($_SERVER['REQUEST_METHOD']) {
-        case 'GET':
-            $id ? $userController->getUserByID($id) : $userController->getAllUsers();
-            break;
-        case 'POST':
-            $userController->saveUser();
-            break;
-        case 'PUT':
-            $userController->updateUser($id);
-            break;
-        case 'DELETE':
-            $userController->deleteUser($id);
-            break;
+    
+    if ($id) {
+        $userController->getUserByID($id);
+    } else {
+        $userController->getAllUsers();
     }
 }
 
-// Posts API
-if ($uriArray[1] === 'api' && $uriArray[2] === 'posts') {
+if ($uriArray[1] === 'api' && $uriArray[2] === 'users' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $userController = new UserController();
+    $userController->saveUser();
+}
+
+if ($uriArray[1] === 'api' && $uriArray[2] === 'users' && $_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $userController = new UserController();
     $id = isset($uriArray[3]) ? intval($uriArray[3]) : null;
-    $postController = new PostController();
-
-    switch ($_SERVER['REQUEST_METHOD']) {
-        case 'GET':
-            $id ? $postController->getPostByID($id) : $postController->getAllPosts();
-            break;
-        case 'POST':
-            $postController->savePost();
-            break;
-        case 'PUT':
-            $postController->updatePost($id);
-            break;
-        case 'DELETE':
-            $postController->deletePost($id);
-            break;
-    }
+    $userController->updateUser($id);
 }
 
-// Views for Users
-if ($uri === '/users-add') {
+if ($uriArray[1] === 'api' && $uriArray[2] === 'users' && $_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    $userController = new UserController();
+    $id = isset($uriArray[3]) ? intval($uriArray[3]) : null;
+    $userController->deleteUser($id);
+}
+
+if ($uriArray[1] === 'api' && $uriArray[2] === 'posts' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $id = isset($uriArray[3]) ? intval($uriArray[3]) : null;
+    
+    if ($id) {
+        $postController->getPostByID($id);
+    } else {
+        $postController->getAllPosts();
+    }
+
+} elseif ($uriArray[1] === 'api' && $uriArray[2] === 'posts' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $postController->savePost();
+
+} elseif ($uriArray[1] === 'api' && $uriArray[2] === 'posts' && $_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $id = isset($uriArray[3]) ? intval($uriArray[3]) : null;
+    $postController->updatePost($id);
+
+} elseif ($uriArray[1] === 'api' && $uriArray[2] === 'posts' && $_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    $id = isset($uriArray[3]) ? intval($uriArray[3]) : null;
+    $postController->deletePost($id);
+}
+
+// Views for user-related pages
+if ($uri === '/users-add' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $userController = new UserController();
     $userController->usersAddView();
-} elseif ($uri === '/users-update') {
+}
+
+if ($uriArray[1] === 'users-update' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $userController = new UserController();
     $userController->usersUpdateView();
-} elseif ($uri === '/users-delete') {
+}
+
+if ($uriArray[1] === 'users-delete' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $userController = new UserController();
     $userController->usersDeleteView();
-} elseif ($uri === '/users') {
+}
+
+if ($uri === '/' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $userController = new UserController();
     $userController->usersView();
 }
 
-// Views for Posts
-elseif ($uri === '/posts-add') {
-    $postController = new PostController();
+if ($uri === '/posts-add' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $postController->postsAddView();
-} elseif ($uri === '/posts-update') {
-    $postController = new PostController();
+}
+
+if ($uriArray[1] === 'posts-update' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $postController->postsUpdateView();
-} elseif ($uri === '/posts-delete') {
-    $postController = new PostController();
+}
+
+if ($uriArray[1] === 'posts-delete' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $postController->postsDeleteView();
-} elseif ($uri === '/posts') {
-    $postController = new PostController();
+}
+
+if ($uriArray[1] === 'posts-view' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $postController->postsView();
 }
 
-// Default 404 page
-else {
-    include '../public/assets/views/notFound.html';
-    exit();
-}
+
+include '../public/assets/views/notFound.html';
+exit();
+
 ?>
