@@ -10,93 +10,54 @@
         <link rel="stylesheet" href="/assets/styles/posts-view.css">
     </head>
     <body>
-
         <div class="container posts-form margin-thirty">
-            <a href="http://localhost:8888/" class="link">Home</a>
-            <h2 class="margin-thirty">Edit Post</h2>
-            <form id="form-id">
-                <div class="form-group margin-twenty">
-                    <label for="title">Title</label>
-                    <label id="title-error"></label>
-                    <input type="text" class="form-control" id="title"
-                           placeholder="Enter Title" name="title">
-                </div>
-                <div class="form-group margin-ten">
-                    <label for="content">Content</label>
-                    <label id="content-error"></label>
-                    <textarea class="form-control" id="content"
-                           placeholder="Enter Content" name="content"></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary submit-button margin-twenty">Submit</button>
-            </form>
+            <a href="http://localhost:8888/posts-view" class="link">Home</a>
+            <div id="delete-post-container" class="margin-thirty">
+                <h2 id="post-delete">Are you sure you want to delete </h2>
+                <div id="posts-data"></div>
+                <button class="btn btn-danger delete-button margin-twenty" id="delete-button">Delete</button>
+            </div>
         </div>
 
         <script>
-
             $(document).ready(function () {
-                const urlArry = window.location.pathname.split("/")
-                const id = urlArry[2]
+                const urlArray = window.location.pathname.split("/");
+                const id = urlArray[2]; 
+                console.log("Extracted ID:", id); 
+
                 $.ajax({
                     url: `http://localhost:8888/api/posts/${id}`,
                     type: "GET",
                     dataType: "json",
                     success: function (data) {
-                        const post = data[0]
-                        $('#title').val(post.title)
-                        $('#content').val(post.content)
-
+                        $('#post-delete').append(`${data.title}?`);
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Failed to load post details.");
+                        console.error("Status:", status);
+                        console.error("Error:", error);
                     }
                 });
 
-                $('#form-id').on('submit', function (e) {
-                    const urlArry = window.location.pathname.split("/")
-                    const id = urlArry[2]
-                    e.preventDefault();
-                    const title = $('#title').val();
-                    const content = $('#content').val();
-
-                    const data = {
-                        title,
-                        content,
-                    }
+                $('#delete-button').click(function () {
+                    console.log(`Attempting to delete post with ID: ${id}`); 
                     $.ajax({
                         url: `http://localhost:8888/api/posts/${id}`,
-                        type: "PUT",
-                        data: data,
+                        type: "DELETE",
                         dataType: "json",
                         success: function (data) {
-                            window.location.replace("http://localhost:8888/posts");
+                            alert("Post deleted successfully.");
+                            window.location.replace("http://localhost:8888/posts-view");
                         },
-                        error: function (data){
-                            $('#title-error').html('')
-                            $('#content-error').html('')
-                            $('#title').removeClass('error-border')
-                            $('#content').removeClass('error-border')
-                            if (data.responseJSON?.requiredTitle) {
-                                $('#title').addClass('error-border')
-                                $('#title-error').append(` <span class='error-text'>${data.responseJSON?.requiredTitle}</span>`)
-                            }
-                            if (data.responseJSON?.titleShort) {
-                                $('#title').addClass('error-border')
-                                $('#title-error').append(` <span class='error-text'>${data.responseJSON?.titleShort}</span>`)
-                            }
-                            if (data.responseJSON?.requiredContent) {
-                                $('#content').addClass('error-border')
-                                $('#content-error').append(` <span class='error-text'>${data.responseJSON?.requiredContent}</span>`)
-                            }
-                            if (data.responseJSON?.contentShort) {
-                                $('#content').addClass('error-border')
-                                $('#content-error').append(` <span class='error-text'>${data.responseJSON?.contentShort}</span>`)
-                            }
+                        error: function (xhr, status, error) {
+                            alert(`Failed to delete the post. Error: ${xhr.responseText}`);
+                            console.error("Status:", status);
+                            console.error("Error:", error);
                         }
                     });
-                })
-
-            })
-
+                });
+            });
 
         </script>
-
     </body>
 </html>
