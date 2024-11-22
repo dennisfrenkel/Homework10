@@ -109,10 +109,13 @@ if ($uriArray[1] === 'posts-delete' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $postController->postsDeleteView();
 }
 
+if ($uri === '/posts' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $postController->postsView();  // Ensure this method handles displaying posts
+}
+
 if ($uriArray[1] === 'posts-view' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $postController->postsView();
 }
-
 
 include '../public/assets/views/notFound.html';
 exit();
