@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -11,81 +10,69 @@
         <link rel="stylesheet" href="/assets/styles/posts-view.css">
     </head>
     <body>
-
         <div class="container posts-form margin-thirty">
-            <a href="http://localhost:8888/" class="link">Home</a>
+            <a href="http://localhost:8888/posts-view" class="link">Home</a>
             <h2 class="margin-thirty">Add Post</h2>
-            <form id="form-id">
+            <form id="form-id" action='#' method="post">
                 <div class="form-group margin-twenty">
                     <label for="title" id="title-label">Title</label>
                     <label id="title-error"></label>
-                    <input type="text" class="form-control" id="title"
-                           placeholder="Enter Title" name="title">
+                    <input type="text" class="form-control" id="title" placeholder="Enter Title">
                 </div>
                 <div class="form-group margin-ten">
                     <label for="content" id="content-label">Content</label>
                     <label id="content-error"></label>
-                    <textarea class="form-control" id="content"
-                           placeholder="Enter Content" name="content"></textarea>
+                    <textarea class="form-control" id="content" placeholder="Enter Content"></textarea>
                 </div>
-
                 <button type="submit" class="btn btn-primary submit-button margin-twenty">Submit</button>
             </form>
         </div>
 
         <script>
-
             $(document).ready(function () {
-
                 $('#form-id').on('submit', function (e) {
+                    console.log("Form submitted");
                     e.preventDefault();
                     const title = $('#title').val();
                     const content = $('#content').val();
 
-                    const data = {
-                        title,
-                        content,
-                    }
+                    const data = { title, content };
+
                     $.ajax({
                         url: `http://localhost:8888/api/posts`,
                         type: "POST",
                         data: data,
                         dataType: "json",
                         success: function (data) {
-                            console.log(data)
-                            window.location.replace("/posts");
+                            console.log(data);
+                            window.location.replace("http://localhost:8888/posts-view");
                         },
-                        error: function (data){
-                            // window.location.replace("/users-view");
-                            console.log(data.responseJSON)
-                            $('#title-error').html('')
-                            $('#content-error').html('')
-                            $('#title').removeClass('error-border')
-                            $('#content').removeClass('error-border')
+                        error: function (data) {
+                            $('#title-error').html('');
+                            $('#content-error').html('');
+                            $('#title').removeClass('error-border');
+                            $('#content').removeClass('error-border');
+
                             if (data.responseJSON?.requiredTitle) {
-                                $('#title').addClass('error-border')
-                                $('#title-error').append(` <span class='error-text'>${data.responseJSON?.requiredTitle}</span>`)
+                                $('#title').addClass('error-border');
+                                $('#title-error').append(`<span class='error-text'>${data.responseJSON?.requiredTitle}</span>`);
                             }
                             if (data.responseJSON?.titleShort) {
-                                $('#title').addClass('error-border')
-                                $('#title-error').append(` <span class='error-text'>${data.responseJSON?.titleShort}</span>`)
+                                $('#title').addClass('error-border');
+                                $('#title-error').append(`<span class='error-text'>${data.responseJSON?.titleShort}</span>`);
                             }
                             if (data.responseJSON?.requiredContent) {
-                                $('#content').addClass('error-border')
-                                $('#content-error').append(` <span class='error-text'>${data.responseJSON?.requiredContent}</span>`)
+                                $('#content').addClass('error-border');
+                                $('#content-error').append(`<span class='error-text'>${data.responseJSON?.requiredContent}</span>`);
                             }
                             if (data.responseJSON?.contentShort) {
-                                $('#content').addClass('error-border')
-                                $('#content-error').append(` <span class='error-text'>${data.responseJSON?.contentShort}</span>`)
+                                $('#content').addClass('error-border');
+                                $('#content-error').append(`<span class='error-text'>${data.responseJSON?.contentShort}</span>`);
                             }
                         }
                     });
-                })
-
-            })
-
-
+                });
+            });
         </script>
-
     </body>
 </html>
