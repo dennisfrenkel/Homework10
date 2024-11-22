@@ -18,13 +18,10 @@ abstract class Model {
         $port = '8889';
         $charset = 'utf8mb4';
 
-//      some of these are optional
         $dsn = "$type:hostname=" . DBHOST .";dbname=" . DBNAME . ";port=$port;charset=$charset";
 
         $options = [
-            //we can set the error mode, to throw exceptions or PDO type errors
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            //set the default fetch type
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ];
 
@@ -39,22 +36,18 @@ abstract class Model {
     public function fetch($query) {
         $connectedPDO = $this->connect();
         $statementObject = $connectedPDO->query($query);
-        //no params, one row
         return $statementObject->fetch();
     }
 
     public function fetchAll($query) {
         $connectedPDO = $this->connect();
         $statementObject = $connectedPDO->query($query);
-        //no params, multiple rows
         return $statementObject->fetchAll();
     }
 
     public function fetchAllWithParams($query, $data = []) {
         $connection = $this->connect();
-        //prepare statement -
         $statementObject = $connection->prepare($query);
-        //data needs
         $successOrFail = $statementObject->execute($data);
         if ($successOrFail) {
             $result = $statementObject->fetchAll(PDO::FETCH_OBJ);
